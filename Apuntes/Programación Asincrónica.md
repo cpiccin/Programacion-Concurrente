@@ -99,3 +99,17 @@ let (r1, r2) = join!(f1, f2);
 - espera a que las dos terminen
 - devuelve una tupla con los resultados
 - ambas avanzan “a la vez”, cuando una espera, la otra puede seguir
+
+## Pin
+Los tipos autogenerados de async que implementa Future guardan referencias a si mismos. Si fueran movidos (por ej por estar en el stack) sus referencias internas no se actualizarian.
+
+Si se mueve, se perderia la autoreferencia. Por eso, no se permite que se mueva en memoria.
+
+`Pin` garantiza que un valor no se va a mover en memoria.
+
+- Todos los tipos implementan por depento el autotrait `Unpin`
+- Si T es `!Unpin`, `Pin` evita que se mueva haciendo imposible llamar a metodos que requieran `&mut T` como `mem::swap`
+
+El `poll` recibe un `Pin` de self, una variante de self que no es movible.
+
+## Runtimes
