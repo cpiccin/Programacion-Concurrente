@@ -14,8 +14,8 @@ El codigo asincronico es como el de threads pero se maneja diferente la forma en
 
 Los puntos donde la tarea va a hacer el control son los puntos donde se va a poner en espera.
 
-## Ejemplo
-### Version Sincronica
+### Ejemplo
+#### Version Sincronica
 ```
 use std::{net, thread};
 let listener = net::TcpListener::bind(address)?; // El bind() es bloqueante
@@ -28,7 +28,7 @@ for socket_result in listener.incoming() { // El incoming() es bloqueante
   });
 }
 ```
-### Version Asincronica
+#### Version Asincronica
 ```
 use async_std::{net, task};
 let listener = net::TcpListener::bind(address).await?; // Punto de continuacion
@@ -50,9 +50,9 @@ Rust introduce el trait `std::future::Future`.
 - **Future** es un valor que representa un resultado que va a estar disponible en el futuro
 - Representa una operación sobre la que se puede testear si se completó.
 - El metodo `poll` nunca bloque e intenta avanzar la ejecución del Future:
--   Si la operación se completó, retorna: Poll::Ready(output) (output es el resultado final de la operación).
--    Si no se completó, retorna Pending
-
+  -   Si la operación se completó, retorna: `Poll::Ready(output)` (output es el resultado final de la operación).
+  -    Si no se completó, retorna `Pending`
+- No es que **yo** llamo a `poll`, el runtime async lo hace, `.await` usa poll internamente.
 
 ```
 let f = suma_async();
@@ -62,3 +62,40 @@ let f = suma_async();
 
 Se puede decir que es un modelo **piñata** de la programación asincrónica: lo único que se puede hacer con un future es golpearlo 😢 con poll hasta que caiga el valor.
 
+### Performance
+- La arquitectura async de Rust está diseñada para ser eficiente
+- Se llama a poll solamente cuando vale la pena (algo debe retornar Ready, o progresar al objetivo).
+
+---
+ # Practica: Programacion Asincronica
+ Cuando se usa async? 
+ - Consulta a un servicio externo
+ - Leer de un archivo
+ - Servir requests HTTP
+ - Cuando tenemos que hacer algo que no es tan costoso computacionalmente como para necesitar el thread completo.
+
+## Macro join!
+ `join!` hace que se haga `.await` concurrentemente
+
+### Diferencia con `.await`?
+Haciendo esto:
+```
+let r1 = tarea1().await;
+let r2 = tarea2().await;
+```
+- ejecuta `tarea1` hasta que termina
+- recién después empieza `tarea2`
+- No es concurrente❗❗❗
+
+Usando `join!` es concurrente porque:
+ ```
+let f1 = tarea1();
+let f2 = tarea2();
+
+let (r1, r2) = join!(f1, f2);
+```
+- empiezan ambas tareas
+- las va ejecutando de forma intercalada
+- espera a que las dos terminen
+- devuelve una tupla con los resultados
+- ambas avanzan “a la vez”, cuando una espera, la otra puede seguir
