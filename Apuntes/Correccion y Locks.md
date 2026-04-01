@@ -69,6 +69,10 @@ let lock = RwLock::new(5);
 ```
 
 ## Locks envenenados
-Un lock queda en estado envenenado cuando un thread lo toma de forma exclusiva (write lock) y mientras tiene tomado el lock, ejecuta `panic!`.
+Un lock queda en estado envenenado cuando un thread lo toma de forma exclusiva (write lock) y mientras tiene tomado el lock, ejecuta `panic!`. O sea que el thread no deberia hacer panic porque no se estaria manejando bien el error.
 
 Las llamadas posteriores a `read()` y `write()` sobre el mismo lock, devolverán Error.
+
+El lock tiene metodos para dejar de estar envenenado.
+
+Esta bueno minimizar la cantidad de lineas en una seccion critica porque se reduce la posibilidad de que surja un panic.
