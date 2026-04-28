@@ -59,7 +59,10 @@ Cuando alguien coloca algo en el canal, esta entregando el ownership del element
 
 ### Caracteristicas
 - Un canal tiene dos extremos: un emisor y un receptor
-- Una parte del codigo in
+- Una parte del codigo invoca metodos sobre el transmisor, con
+- Una parte del codigo ejecuta los metodos de envio en el extremo de transmision, y otro de lectura, un extremo de recepcion.
+- Se chequea el exceso de mensajes, si hay exceso, queda bloqueado.
+- Multiples productores, un consumidor.
+- Para crear multiples productores, se clona el extremo de envio
 
 
-39:20
