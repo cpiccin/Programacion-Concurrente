@@ -660,3 +660,47 @@ Realizan varias tareas:
 - ejecutar un event loop
 - crear tareas asincronicas en ese event loop
 
+
+# Semaforos, Barreras y Monitores
+A continuación, se definen y modelan las herramientas de sincronización solicitadas, detallando su funcionamiento interno, similitudes, diferencias y el manejo de condiciones críticas.
+
+### 1. Semáforos
+Un **semáforo** es un mecanismo de sincronización de alto nivel definido como un tipo de dato compuesto por un **contador entero no negativo (V)** y un **conjunto de procesos bloqueados (L)**.
+
+*   **Comportamiento Interno:** Se basa en dos operaciones atómicas principales:
+    *   **`wait(S)` (o `p(S)`):** Intenta ocupar un recurso. Si $V > 0$, resta 1 al contador y el proceso continúa; de lo contrario, el proceso se bloquea y se añade al conjunto $L$.
+    *   **`signal(S)` (o `v(S)`):** Libera un recurso. Si el conjunto $L$ está vacío, suma 1 al contador; si hay procesos esperando, despierta a uno de ellos (usualmente de forma arbitraria) para que pase al estado "listo".
+*   **Uso Correcto:** Se utilizan para controlar el acceso a recursos limitados o para señalización entre hilos. En Rust, es común el uso del patrón **RAII** mediante `access()`, que libera el semáforo automáticamente al salir del scope.
+
+### 2. Barreras
+Las **barreras** permiten coordinar un conjunto de hilos obligándolos a esperar en un punto determinado del código hasta que todos hayan llegado a dicho punto.
+
+*   **Comportamiento Interno:** Poseen una operación fundamental de espera (`wait`). Internamente, mantienen un contador de cuántos hilos han alcanzado la barrera. Cuando el último hilo llega, todos los procesos bloqueados se liberan simultáneamente.
+*   **Uso Correcto:** Son ideales para algoritmos que operan por **fases**, como simulaciones paso a paso o productos de matrices por bloques. En Rust, la operación `wait()` devuelve un resultado que permite identificar al **hilo líder** (el último en llegar).
+
+### 3. Monitores
+Un **monitor** es una estructura que garantiza la **exclusión mutua** automática y permite que los hilos esperen a que una condición específica se cumpla.
+
+*   **Comportamiento Interno:** Se compone de variables internas protegidas, procedimientos (métodos) que acceden a ellas y un conjunto de **Variables de Condición (CV)**. Las CV no guardan valores, sino una cola FIFO de procesos. Sus operaciones son:
+    *   **`waitC(cond)`:** Bloquea siempre al proceso, lo añade a la cola FIFO y libera el lock del monitor.
+    *   **`signalC(cond)`:** Despierta al proceso al tope de la cola; si la cola está vacía, no tiene efecto.
+*   **Uso Correcto:** Se recomienda para administrar recursos compartidos complejos donde el acceso debe estar **encapsulado**. El programador no necesita manejar manualmente el lock una vez dentro del monitor.
+
+### Similitudes y Diferencias
+*   **Encapsulamiento:** Los monitores encapsulan los datos y el protocolo de acceso, mientras que los semáforos no imponen control sobre cómo el proceso usa los datos una vez obtenido el permiso.
+*   **Bloqueo de espera:** En un semáforo, `wait` solo bloquea si el contador es cero; en un monitor, `waitC` **siempre bloquea** al proceso.
+*   **Efecto de la señal:** `signal` en un semáforo siempre tiene efecto (incrementa el contador o despierta a alguien); `signalC` en un monitor **no hace nada** si no hay hilos en la cola.
+*   **Orden de despertar:** Los monitores usan colas **FIFO**, garantizando orden; los semáforos suelen despertar procesos de forma **arbitraria**.
+
+### Spurious Wakeups (Despertares Espurios)
+Un **spurious wakeup** ocurre cuando un hilo que está esperando en una variable de condición se despierta sin que ningún otro hilo haya llamado a `signal` o `notify`, o cuando se despierta pero la condición aún no es verdadera (por ejemplo, porque otro hilo tomó el recurso justo antes).
+
+*   **Manejo Correcto:** Para evitar errores lógicos derivados de estos despertares, es obligatorio verificar la condición dentro de un bucle **`while`** en lugar de un `if`.
+*   **Ejemplo de implementación:**
+    ```rust
+    // Uso correcto en monitores/condvars
+    while !condicion_cumplida {
+        condvar.wait(lock);
+    }
+    ```
+    Esto garantiza que, si el hilo despierta "por error", vuelva a consultar la condición y se bloquee nuevamente si no es seguro proceder.
