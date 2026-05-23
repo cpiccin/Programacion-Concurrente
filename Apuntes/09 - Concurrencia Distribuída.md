@@ -63,3 +63,13 @@ Necesitamos que los nodos/procesos esten organizados en un anillo lógico: uno n
 4. Cuando el proceso original recibe el mensaje, lo cambia a `COORDINATOR` y lo envia. El nuevo lider es el proceso con mayor id de la lista. La lista se mantiene para informar el nuevo anillo.
 5. Cuando finaliza la circulacion del mensaje, se elimina del anillo.
 
+# Servidor TCP
+## Primer paso
+Asociar un socket a una direccion.
+
+El metodo `bind` crea un nuevo _TcpListener_ y lo asocia a una direccion especifica.
+
+`bind` recibe como parametro una direccion y retorna un socket de tipo TcpListener. El _Listener_ retornado esta listo para aceptar conexiones.
+
+## Segundo paso
+1:35:34
