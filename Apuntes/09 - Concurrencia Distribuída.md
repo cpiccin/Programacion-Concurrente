@@ -59,5 +59,7 @@ Cuando un proceso `P` nota que el lider no responde, inicia el proceso de elecci
 Necesitamos que los nodos/procesos esten organizados en un anillo lógico: uno nodo se comunica con el siguiente, y recibio del anterior. 
 1. Los procesos estan ordenados logicamente: cada uno conoce a su sucesor.
 2. Cuando algun proceso nota que el lider falló, le manda a su sucesor un mensaje `ELECTION` que contiene su propio id.
-
+3. El que recibe ese mensaje, le agrega su id y lo reenvia al siguiente.
+4. Cuando el proceso original recibe el mensaje, lo cambia a `COORDINATOR` y lo envia. El nuevo lider es el proceso con mayor id de la lista. La lista se mantiene para informar el nuevo anillo.
+5. Cuando finaliza la circulacion del mensaje, se elimina del anillo.
 
