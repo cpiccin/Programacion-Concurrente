@@ -65,11 +65,50 @@ Necesitamos que los nodos/procesos esten organizados en un anillo lógico: uno n
 
 # Servidor TCP
 ## Primer paso
-Asociar un socket a una direccion.
+> Asociar un socket a una direccion.
 
 El metodo `bind` crea un nuevo _TcpListener_ y lo asocia a una direccion especifica.
 
 `bind` recibe como parametro una direccion y retorna un socket de tipo TcpListener. El _Listener_ retornado esta listo para aceptar conexiones.
 
 ## Segundo paso
-1:35:34
+> Extraccion de conexiones establecidas de clientes ya establecidos.
+
+Hay dos maneras:
+
+### Metodo Incoming: 
+Retorna un iterador que devuelve una secuencia de streams de tipo TcpStream: un nuevo socket que esta conectado con el cliente.
+
+Cada **stream** representa una conexion abierta entre el cliente y el servidor.
+
+Cada vez que hay una conexion establecida (el SO tiene una cola de conexiones establecidas) si hay un elemento, se desbloquea sino queda bloqueado hasta que venga una conexion.
+
+### Metodo Accept:
+El metodo accept obtiene una conexion establecida de un listener. El hilo se bloquea hasta que haya una conexion establecida.
+
+## Tercer paso
+> Leer datos del socket: **read**
+
+TcpStream tiene el metodo read. Van a leerse a lo sumo la cantidad de elementos que entran en el buffer.
+
+> Escribir una respuesta a la peticion del cliente
+
+write devuelve cuanto escribio.
+
+El metodo flush realiza una espera, previniendo que el programa continue sin haber escrito en la conexion todos los bytes.
+
+# Cliente TCP
+El cliente que se quiere conectar al servidor debe establecer la conexion con el servidor, debe conocer donde conectarse. Puede construir la direccion de destino a partir de una direccion IP o a partir de un nombre.
+
+Al conectarse al servidor, el cliente ejecuta el metodo **connect**. Este metodo abre una conexion al host remoto. Si se le envia un array de direcciones, intenta conectarse a cada una hasta lograrlo. 
+
+Y para enviar y recibir datos tambien usa read y write como el servidor.
+
+# Cierre de conexion TCP
+Puede ser realizado de forma individual (un cliente decide desconectarse del servidor y el servidor sigue andando)
+
+La conexion establecida con TcpStream se cierra cuando el valor ejecuta drop. Esto inicia el envio de mensaje close de TCP.
+
+El metodo shutdown puede cerrar el extremo de escritura, de lectura o ambos
+
+
