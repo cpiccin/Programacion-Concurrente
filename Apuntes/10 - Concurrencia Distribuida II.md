@@ -61,4 +61,16 @@ Se trata de modificar de forma optimista, o sea suponiendo que no van a haber co
 - **Ventaja:** no hay deadlocks y se favorece el paralelismo.
 - **Desventaja:** rehacer todo puede ser costoso en codiciones de alta carga
 
-36:26
+### Timestamps
+Cada archivo tiene dos timestamps:
+- lectura y escritura y que transaccion hizo la ultima operacion en cada caso
+
+Y Cada transaccion recibe un timestamp al iniciarse.
+
+Se compara el timestamp de la transaccion con los timestamps del archivo: 
+- Si es mayor, la transaccion esta en orden y se procede con la operacion
+- Si es menor, se aborta la transaccion
+
+Al commitear se actualizan los timestamps del archivo.
+
+51:00 
